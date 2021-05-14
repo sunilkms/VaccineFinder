@@ -4,8 +4,11 @@
 # THis code is provide as is without any warranty of any kind.
 # <About> this script will find and show the avaiable covid vaccine slots every 5 min and will pop up a window with all available slots.
 # Update: add multiple pins to search and play sound when there is availability.
-# Usage: Find_Covid_Vaccnine_Centers.ps1 -Pin 201301",121001,110025
-#$PINs=("201301",121001,110025,110048,"110076",110092)
+# Usage:
+# Show 18+ age group
+# Find_Covid_Vaccnine_Centers.ps1 -Pin 201301",121001,110025
+# #Show all age group
+# Find_Covid_Vaccnine_Centers.ps1 -Pin 201301",121001,110025
 
 param (
         $PINs=(201301,203207,201310),
@@ -23,7 +26,7 @@ $global:balloon = New-Object System.Windows.Forms.NotifyIcon
 })
 
 function ShowNotification {
-param ($msg="hell this is testing",$title)
+param ($msg=,$title)
 $path = (Get-Process -id $pid).Path
   $balloon.Icon  = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
   #[System.Windows.Forms.ToolTipIcon] | Get-Member -Static -Type Property 
