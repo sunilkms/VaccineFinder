@@ -58,26 +58,23 @@ foreach ($pin in $pins)
 
     Write-Host " $(get-date) Checking available Centers for $pin from start date $date" -ForegroundColor Green
 
-    #url for a single day
-    #$RequestURl="https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByPin?pincode=$PIN&date=$DATE"
-
-    #Request url for the 7 days
+    #Request url for the 7 days Calendar
     $RequestURl="https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin?pincode=$PIN&date=$DATE"
     $webRequest=Invoke-WebRequest $RequestURl
     $centers=($webrequest.Content | ConvertFrom-Json).centers
 
     $c=0
-    #centers including availability
-    $CIA=$centers | % { $_.sessions | select @{n="Center Name";E={$($centers[$c].name)}}, Date,min_age_limit,vaccine,available_capacity ;$C++ } | sort date
+    #All centers for posted Pin Code
+    $AllCenters=$centers | % { $_.sessions | select @{n="Center Name";E={$($centers[$c].name)}}, Date,min_age_limit,vaccine,available_capacity ;$C++ } | sort date
 
         if ($showall) 
                 {
                     #All centers no age limit
-                    $available=$CIA | ? {$_.available_capacity -ne 0}
+                    $available=$AllCenters | ? {$_.available_capacity -ne 0}
                 } 
         else    {
                     #All centers with age limit 18+ 
-                    $18plusAllcenters=$CIA | ? {$_.min_age_limit -eq 18}
+                    $18plusAllcenters=$AllCenters | ? {$_.min_age_limit -eq 18}
                     #find available slots
                     $available=$18plusAllcenters | ? {$_.available_capacity -ne 0}
                 }
