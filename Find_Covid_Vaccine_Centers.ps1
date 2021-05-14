@@ -6,13 +6,14 @@
 # Update: add multiple pins to search and play sound when there is availability.
 # Usage:
 # Show 18+ age group
-# Find_Covid_Vaccnine_Centers.ps1 -Pin 201301",121001,110025
+# Find_Covid_Vaccnine_Centers.ps1 -PINs 201301",121001,110025
 # #Show all age group
-# Find_Covid_Vaccnine_Centers.ps1 -Pin 201301",121001,110025
+# Find_Covid_Vaccnine_Centers.ps1 -PINs 201301",121001,110025 -ShowAll
 
 param (
         $PINs=(201301,203207,201310),
-        [switch]$showall
+        [switch]$showall,
+        $CheckAgaininMin=1
       )
 
 Add-Type -AssemblyName  System.Windows.Forms 
@@ -97,6 +98,6 @@ foreach ($pin in $pins)
      }
 
     Write-Host "Wating for 60 sec..." -ForegroundColor Yellow
-    sleep 60
+    sleep $(60*$CheckAgaininMin)
 
 } until ($x -eq $y)
