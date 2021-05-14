@@ -27,7 +27,7 @@ $global:balloon = New-Object System.Windows.Forms.NotifyIcon
 })
 
 function ShowNotification {
-param ($msg=,$title)
+param ($msg,$title)
 $path = (Get-Process -id $pid).Path
   $balloon.Icon  = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
   #[System.Windows.Forms.ToolTipIcon] | Get-Member -Static -Type Property 
