@@ -18,13 +18,16 @@ param (
 
 Add-Type -AssemblyName  System.Windows.Forms 
 $global:balloon = New-Object System.Windows.Forms.NotifyIcon
-[void](Register-ObjectEvent  -InputObject $balloon  -EventName MouseDoubleClick  -SourceIdentifier IconClicked  -Action {
+try {
+[void](Register-ObjectEvent  -InputObject $balloon  -EventName MouseDoubleClick  -SourceIdentifier IconClicked -ErrorAction SilentlyContinue -Action {
   #Perform  cleanup actions on balloon tip
   $global:balloon.dispose()
   Unregister-Event  -SourceIdentifier IconClicked
   Remove-Job -Name IconClicked
   Remove-Variable  -Name balloon  -Scope Global
-})
+}) } catch {""}
+
+
 
 function ShowNotification {
 param ($msg,$title)
