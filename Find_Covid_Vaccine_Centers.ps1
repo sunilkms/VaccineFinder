@@ -1,57 +1,77 @@
+#---------------------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------------------
+#
 # COVID Vaccine Finder
-# 
 # Author : Sunil Chauhan <sunilkms@gmail.com>
 # THis code is provide as is without any warranty of any kind.
 # <About> this script will find and show the avaiable covid vaccine slots every 5 min and will pop up a window with all available slots.
 # Update: add multiple pins to search and play sound when there is availability.
+
 # Usage:
 # Show 18+ age group
 # Find_Covid_Vaccnine_Centers.ps1 -PINs 201301",121001,110025
 # #Show all age group
 # Find_Covid_Vaccnine_Centers.ps1 -PINs 201301",121001,110025 -ShowAll
+#
+#----------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------
 
 param (
-        $PINs=(201301,203207,201310),
+        $PINs=(gc Pins.txt),
         [switch]$showall,
         $CheckAgaininMin=1
       )
 
-Add-Type -AssemblyName  System.Windows.Forms 
-$global:balloon = New-Object System.Windows.Forms.NotifyIcon
 try {
-[void](Register-ObjectEvent  -InputObject $balloon  -EventName MouseDoubleClick  -SourceIdentifier IconClicked -ErrorAction SilentlyContinue -Action {
-  #Perform  cleanup actions on balloon tip
-  $global:balloon.dispose()
-  Unregister-Event  -SourceIdentifier IconClicked
-  Remove-Job -Name IconClicked
-  Remove-Variable  -Name balloon  -Scope Global
-}) } catch {""}
+        
+        Add-Type -AssemblyName  System.Windows.Forms 
+        $global:balloon = New-Object System.Windows.Forms.NotifyIcon
+        [void](Register-ObjectEvent -InputObject $balloon -EventName MouseDoubleClick -SourceIdentifier IconClicked -ErrorAction SilentlyContinue -Action {  
+        #Perform  cleanup actions on balloon tip
+        $global:balloon.dispose()
+        Unregister-Event  -SourceIdentifier IconClicked
+        Remove-Job -Name IconClicked
+        Remove-Variable -Name balloon -Scope Global
+        }) 
 
-
+} catch {""}
 
 function ShowNotification {
-param ($msg,$title)
-$path = (Get-Process -id $pid).Path
-  $balloon.Icon  = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
-  #[System.Windows.Forms.ToolTipIcon] | Get-Member -Static -Type Property 
-  $balloon.BalloonTipIcon  = [System.Windows.Forms.ToolTipIcon]::Info
-  $balloon.BalloonTipText  = $msg
-  $balloon.BalloonTipTitle  =$title
-  $balloon.Visible  = $true 
-  $balloon.ShowBalloonTip(100000)
-  #$balloon.Dispose()
+    
+    param ($msg,$title)
+
+    $path = (Get-Process -id $pid).Path
+    $balloon.Icon  = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
+    #[System.Windows.Forms.ToolTipIcon] | Get-Member -Static -Type Property 
+    $balloon.BalloonTipIcon  = [System.Windows.Forms.ToolTipIcon]::Info
+    $balloon.BalloonTipText  = $msg
+    $balloon.BalloonTipTitle  =$title
+    $balloon.Visible  = $true 
+    $balloon.ShowBalloonTip(100000)
+    #$balloon.Dispose()
+
+    }
+
+function playsound {
+
+         $PlayWav=New-Object System.Media.SoundPlayer
+         $soundfileLocation="C:\Windows\Media\Ring03.wav"
+         $PlayWav.SoundLocation=$soundfileLocation
+         $PlayWav.Play()
+
 }
 
+ShowNotification -title "Starting Vaccine Center Finder" -msg "You will be notified once the slot for the $PINs is available"
 Write-Warning "By default only 18+ slots are visible to include 45+ use switch '-ShowAll'"
 
-$x=1
-$y=2
-
+$y=1
 # go in infinite loop
 do {
 
+#loop Variables
+$exitloop=[int]$(Get-Content -Path stop.cfg) # -eq 1
+$PINs=(gc Pins.txt)
 #search for each pin
-
 foreach ($pin in $pins) 
     {
 
@@ -60,11 +80,17 @@ foreach ($pin in $pins)
     #$date=($d.day,$d.Month,$d.year -join "-")
 
     Write-Host " $(get-date) Checking available Centers for $pin from start date $date" -ForegroundColor Green
-
+    # $pin=201301
     #Request url for the 7 days Calendar
     $RequestURl="https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin?pincode=$PIN&date=$DATE"
     $webRequest=Invoke-WebRequest $RequestURl
     $centers=($webrequest.Content | ConvertFrom-Json).centers
+   
+    #$d=(get-date).AddDays(+7) # get next 8 to 14 days
+    #$date=($d.day,$d.Month,$d.year -join "-")
+    #$RequestURl="https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin?pincode=$PIN&date=$DATE"
+    #$webRequest=Invoke-WebRequest $RequestURl
+    #$centers+=($webrequest.Content | ConvertFrom-Json).centers
 
     $c=0
     #All centers for posted Pin Code
@@ -84,20 +110,25 @@ foreach ($pin in $pins)
 
                     if ($available)
                             {
-                                Write-Host "Center Found $(Get-date)"
+                                Write-Host "Center Found $(Get-date) - PIN:$pin"
                                 #[console]::beep(1000,500) #play beep
-                                $PlayWav=New-Object System.Media.SoundPlayer
-                                $soundfileLocation="C:\Windows\Media\Ring03.wav"
-                                $PlayWav.SoundLocation=$soundfileLocation
-                                $PlayWav.Play()
-                                $available | ft -AutoSize                                
-                                $Title="Slots Found for $PIN"
-                                $msg=$available | % { $_.'center name' + " "  + $_.'date' + " " + $_.vaccine + " " + $_.available_capacity }                             
+                                $available | ft -AutoSize                                 
+                                $available | % {
+                                if (!($_.'center name' -match (gc Exception_not_play_sound_for_these_centers.txt))) {playsound} 
+                                $msg=$_.'center name' + " " + " " + $_.vaccine;
+                                $Title="$($_.available_capacity) Slots found-$PIN-$($_.'date')" 
                                 ShowNotification -msg $Msg -title $Title
+                                }                             
+                                
                             }     
      }
 
-    Write-Host "Wating for 60 sec..." -ForegroundColor Yellow
-    sleep $(60*$CheckAgaininMin)
+    if ($exitloop -ne 1) 
+            {
+            Write-Host "Wating for 60 sec..." -ForegroundColor Yellow;
+            sleep $(60*$CheckAgaininMin)
+            }
 
-} until ($x -eq $y)
+} until ($exitloop -eq $y)
+
+if ($exitloop -eq 1) {ShowNotification -title "Good Bye :) !!" -msg "Vaccine monitor is now stoped."}
