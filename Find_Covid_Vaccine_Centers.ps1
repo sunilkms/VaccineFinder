@@ -43,11 +43,12 @@ function ShowNotification {
     $path = (Get-Process -id $pid).Path
     $balloon.Icon  = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
     #[System.Windows.Forms.ToolTipIcon] | Get-Member -Static -Type Property 
-    $balloon.BalloonTipIcon  = [System.Windows.Forms.ToolTipIcon]::Info
+    #$balloon.BalloonTipIcon  = [System.Windows.Forms.ToolTipIcon]::Info
+    #$balloon.Icon=[System.Drawing.Icon]::new("vaccine-icon.ico")
     $balloon.BalloonTipText  = $msg
     $balloon.BalloonTipTitle  =$title
     $balloon.Visible  = $true 
-    $balloon.ShowBalloonTip(100000)
+    $balloon.ShowBalloonTip(10000)
     #$balloon.Dispose()
 
     }
@@ -116,7 +117,7 @@ foreach ($pin in $pins)
                                 $available | % {
                                 if (!($_.'center name' -match (gc Exception_not_play_sound_for_these_centers.txt))) {playsound} 
                                 $msg=$_.'center name' + " " + " " + $_.vaccine;
-                                $Title="$($_.available_capacity) Slots found-$PIN-$($_.'date')" 
+                                $Title="$($_.available_capacity) slots found for $PIN on $($_.'date')" 
                                 ShowNotification -msg $Msg -title $Title
                                 }                             
                                 
