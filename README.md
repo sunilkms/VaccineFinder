@@ -9,6 +9,6 @@ The script will show system notification on availability of vaccine slot for the
 
 by default script looks for slot every minute, you can adjust the frequency in script.
 
-* list the center name in the "Exception_not_play_sound_for_these_centers.txt" file to disable the sound playing*
+*list the center name in the "Exception_not_play_sound_for_these_centers.txt" file to disable the sound playing*
 
 *NOTE: Notification feature is supported on Windows 10*
