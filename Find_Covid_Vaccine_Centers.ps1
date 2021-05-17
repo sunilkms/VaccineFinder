@@ -115,7 +115,7 @@ foreach ($pin in $pins)
                                 #[console]::beep(1000,500) #play beep
                                 $available | ft -AutoSize                                 
                                $available | % {
-                                if (!($_.'center name' -match ((gc Exception_not_play_sound_for_these_centers.txt) -join "|") )) {
+                                if (!($_.'center name' -match ((gc .\Exclude_notification_for_centers.cfg) -join "|") )) {
                                 if ([int](gc Nosound.cfg) -ne 1){ playsound} 
                                 $msg=$_.'center name' + " " + " " + $_.vaccine;
                                 $Title="$($_.available_capacity) Slots found for $PIN on $($_.'date')" 
