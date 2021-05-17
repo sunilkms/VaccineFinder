@@ -114,13 +114,13 @@ foreach ($pin in $pins)
                                 Write-Host "Center Found $(Get-date) - PIN:$pin"
                                 #[console]::beep(1000,500) #play beep
                                 $available | ft -AutoSize                                 
-                                $available | % {
-                                if (!($_.'center name' -match (gc Exception_not_play_sound_for_these_centers.txt))) {playsound} 
+                               $available | % {
+                                if (!($_.'center name' -match ((gc Exception_not_play_sound_for_these_centers.txt) -join "|") )) {
+                                if ([int](gc Nosound.cfg) -ne 1){ playsound} 
                                 $msg=$_.'center name' + " " + " " + $_.vaccine;
-                                $Title="$($_.available_capacity) slots found for $PIN on $($_.'date')" 
-                                ShowNotification -msg $Msg -title $Title
-                                }                             
-                                
+                                $Title="$($_.available_capacity) Slots found for $PIN on $($_.'date')" 
+                                ShowNotification -msg $Msg -title $Title }
+                                }
                             }     
      }
 
