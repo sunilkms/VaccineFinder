@@ -17,10 +17,13 @@
 #----------------------------------------------------------------------------------------------------------------------------------------
 
 param (
-        $PINs=(gc Pins.txt),
+        $PINs=(gc Pins.cfg),
         [switch]$showall,
         $CheckAgaininMin=1
       )
+
+#Clear-Content logs.log 
+Start-Transcript -Path $((Get-Location).Path + "\Logs.log") -Force
 
 try {
         
@@ -44,11 +47,10 @@ function ShowNotification {
     $balloon.Icon  = [System.Drawing.Icon]::ExtractAssociatedIcon($path)
     #[System.Windows.Forms.ToolTipIcon] | Get-Member -Static -Type Property 
     #$balloon.BalloonTipIcon  = [System.Windows.Forms.ToolTipIcon]::Info
-    #$balloon.Icon=[System.Drawing.Icon]::new("vaccine-icon.ico")
     $balloon.BalloonTipText  = $msg
     $balloon.BalloonTipTitle  =$title
     $balloon.Visible  = $true 
-    $balloon.ShowBalloonTip(10000)
+    $balloon.ShowBalloonTip(2000)
     #$balloon.Dispose()
 
     }
@@ -62,7 +64,7 @@ function playsound {
 
 }
 
-ShowNotification -title "Starting Vaccine Center Finder" -msg "You will be notified once the slot for the $PINs is available"
+ShowNotification -title "Starting Vaccine Center Finder" -msg "You will be notified once the slot for the $(($PINs) -join "," ) is available"
 Write-Warning "By default only 18+ slots are visible to include 45+ use switch '-ShowAll'"
 
 $y=1
@@ -71,7 +73,7 @@ do {
 
 #loop Variables
 $exitloop=[int]$(Get-Content -Path stop.cfg) # -eq 1
-$PINs=(gc Pins.txt)
+$PINs=(gc Pins.cfg)
 #search for each pin
 foreach ($pin in $pins) 
     {
@@ -114,13 +116,16 @@ foreach ($pin in $pins)
                                 Write-Host "Center Found $(Get-date) - PIN:$pin"
                                 #[console]::beep(1000,500) #play beep
                                 $available | ft -AutoSize                                 
-                               $available | % {
-                                if (!($_.'center name' -match ((gc .\Exclude_notification_for_centers.cfg) -join "|") )) {
-                                if ([int](gc Nosound.cfg) -ne 1){ playsound} 
+                                $available | % {
+                                if (!($_.'center name' -match ((gc Exclude_notification_for_centers.cfg) -join "|") )) {
+                                if ([int](gc NoSound.cfg) -ne 1){playsound}
+                                $preferredVac=ipcsv .\Vaccines.cfg | ? {$_.isPriority -eq "True"}                                                                
+                                if  ($_.vaccine -match $($preferredVac.Name -join "|")) {playsound} 
                                 $msg=$_.'center name' + " " + " " + $_.vaccine;
                                 $Title="$($_.available_capacity) Slots found for $PIN on $($_.'date')" 
                                 ShowNotification -msg $Msg -title $Title }
-                                }
+                                }                             
+                                
                             }     
      }
 
@@ -132,4 +137,4 @@ foreach ($pin in $pins)
 
 } until ($exitloop -eq $y)
 
-if ($exitloop -eq 1) {ShowNotification -title "Good Bye :) !!" -msg "Vaccine monitor is now stoped."}
+if ($exitloop -eq 1) {Stop-Transcript;ShowNotification -title "Good Bye <:) !!" -msg "Vaccine monitor is now stoped."}
