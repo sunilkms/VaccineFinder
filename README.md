@@ -15,3 +15,4 @@ Once the centers are available, the script will show system notification on avai
 * Force sound alert when found the prefered vaccine make the isPriority as true in the Vaccine.cfg file, new vaccine brands will be added as and when released.
 
 *NOTE: Notification feature is supported on Windows 10*
+*NOTE: If the powershell script is not running then run the cmd on powershell to unblock the script unblock-file Find_Covid_Vaccine_Centers.ps1*
